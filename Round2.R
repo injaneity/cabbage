@@ -1,44 +1,53 @@
+library(dplyr)
+
 # Problem 2
-orders <- data.frame(
-  "orderid" <- c(),
-  "buyer_userid" <- c(),
-  "seller_userid" <- c()
-)
-
-devices <- data.frame(
-  "userid" <- c(),
-  "device" <- c()
-)
-
-credit_cards <- data.frame(
-  "userid"<- c(),
-  "credit_card" <- c()
-)
-
-credit_cards <- data.frame(
-  "userid"<- c(),
-  "bank_account" <- c()
-)
+devices <- fakedevices
+credit_cards <- fakecards
+bank_accounts <- fakeaccts
+orders <- fakeorders
 
 # Initialise Items by Userid
 userdevices <- list()
 count = 0
 for (i in unique(devices$userid)) {
   count = count + 1
-  dev <- c(i, devices[which(devices$userid==currentid),"device"])
+  dev <- devices[which(devices$userid==i),"device"]
   userdevices[[count]] <- list(i, dev)
 }
 
-
-
-
-
-for (i in orders$orderid) {
-  currentbuyer <- orders[i,"buyer_userid"]
-  currentseller <- orders[i,"seller_userid"]
-  orders$determination <- isFraud(currentbuyer, currentseller)
+userccs <- list()
+count = 0
+for (i in unique(credit_cards$userid)) {
+  count = count + 1
+  cc <- credit_cards[which(credit_cards$userid==i),"creditcard"]
+  userccs[[count]] <- list(i, cc)
 }
 
+userbas <- list()
+count = 0
+for (i in unique(bank_accounts$userid)) {
+  count = count + 1
+  ba <- bank_accounts[which(bank_accounts$userid==i),"bankacct"]
+  userbas[[count]] <- list(i, ba)
+}
+
+# Check fraud for one factor
+checkFraud <- function(masterlist, buyer, seller) {
+  fraud = FALSE
+  b <- masterlist[[which(sapply(masterlist, function(e) is.element(buyer, e)))]][[2]]
+  b <- pull(b, 1)
+  b <- sort(b)
+  s <- masterlist[[which(sapply(masterlist, function(e) is.element(seller, e)))]][[2]]
+  s <- pull(s, 1)
+  s <- sort(s)
+  alldev <- c(b, s)
+  if (any(duplicated(alldev)) == TRUE) {
+    fraud = TRUE
+  }
+  return(fraud)
+}
+
+# Check fraud across device, cc, bacct
 isFraud <- function (buyer, seller) {
   fraud = c()
   fraud[1] = checkFraud(userdevices, buyer, seller)
@@ -52,15 +61,9 @@ isFraud <- function (buyer, seller) {
   return(judgement)
 }
 
-checkFraud <- function(masterlist, buyer, seller) {
-  b <- masterlist[[which(sapply(test, function(e) is.element(buyer, e)))]][[2]]
-  b <- sort(b)
-  s <- master[[which(sapply(test, function(e) is.element(seller, e)))]][[2]]
-  s <- sort(s)
-  alldev <- c(b, s)
-  if (any(duplicated(alldev)) == TRUE) {
-    fraud = TRUE
-  }
-  return(fraud)
+# Main Loop over OrderID
+for (i in orders$orderid) {
+  currentbuyer <- orders[which(orders$orderid == i),"buyer_userid"]
+  currentseller <- orders[which(orders$orderid == i),"seller_userid"]
+  orders[which(orders$orderid == i), "determination"] <- isFraud(currentbuyer, currentseller)
 }
-
