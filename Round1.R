@@ -21,7 +21,7 @@ merged <- na.omit(merged)
 
 merged[, "gross_revenue"] <- merged[, "amount"] * merged[, "item_price_usd"]
 
-getTop3 <- function(merged_df) {
+getTop3 <- function(merged_df)
   Top <- data.frame(matrix(ncol=4))
   count = 0
   for (i in unique(merged_df$brand)) {
